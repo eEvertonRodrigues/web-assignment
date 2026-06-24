@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: web_assignment_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mining
+    ports:
+      - "5435:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./backend/databse/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./backend/databse/seeds.sql:/docker-entrypoint-initdb.d/02_seeds.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mining"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: web_assignment_backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    env_file:
+      - .env
+    environment:
+      - PORT=3000
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: web_assignment_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    env_file:
+      - .env
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pg_data:
