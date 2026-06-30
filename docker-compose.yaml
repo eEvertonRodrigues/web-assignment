@@ -42,6 +42,7 @@ services:
   frontend:
     build:
       context: ./frontend
+      target: dev
     container_name: web_assignment_frontend
     ports:
       - "5173:5173"
