@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api';
+const API_URL = import.meta.env.BACKEND_URL || 'http://localhost:3000/api';
 
 const request = async (endpoint, options = {}) => {
   const response = await fetch(`${API_URL}${endpoint}`, {
